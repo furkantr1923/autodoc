@@ -5,6 +5,7 @@ import 'package:autodoc/core/app_info.dart';
 import 'package:autodoc/data/models/enums.dart';
 import 'package:autodoc/state/app_state.dart';
 import 'package:autodoc/ui/dashboard/dashboard_page.dart';
+import 'package:autodoc/ui/settings/about_page.dart';
 import 'package:autodoc/ui/settings/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -140,6 +141,11 @@ void main() {
     await tester.tap(find.byKey(const Key('open_about')));
     await tester.pumpAndSettle();
     expect(find.text(AppInfo.tagline), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text(AppInfo.developerLine),
+      300,
+      scrollable: find.descendant(of: find.byType(AboutPage), matching: find.byType(Scrollable)).first,
+    );
     expect(find.text(AppInfo.developerLine), findsOneWidget);
   });
 
