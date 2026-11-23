@@ -56,7 +56,8 @@ jobs:
   # ---------------------------------------------------------------- Windows
   windows:
     name: Windows (Setup.exe + taşınabilir)
-    runs-on: windows-latest
+    # Flutter 3.27 Visual Studio 2022 ile derler; windows-latest artık VS 2026 içeriyor.
+    runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
 
@@ -283,3 +284,6 @@ jobs:
             artifacts/AUTODOC-Windows/**/*.exe
             artifacts/AUTODOC-Windows/**/*.zip
             artifacts/AUTODOC-Android/**/*.apk
+            artifacts/test-sonuclari/*.txt
+            artifacts/AUTODOC-Android/apk-verify.txt
+            artifacts/AUTODOC-Windows/windows-selftest.txt
