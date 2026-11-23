@@ -296,40 +296,38 @@ class _SelectedVehicleCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              vehicle.displayName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              [
-                                if (vehicle.nickname != null) vehicle.fullTitle else vehicle.modelYear?.toString(),
-                                vehicle.fuelType.label,
-                                vehicle.engine,
-                              ].whereType<String>().join(' · '),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(color: AppColors.textSecondary),
-                            ),
-                            if (vehicle.plate != null) ...[
-                              const SizedBox(height: 10),
-                              PlatePill(plate: vehicle.plate!),
-                            ],
+                  // Dar ekranda kilometre başlığın altına iner (taşma olmaz).
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final titleBlock = Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            vehicle.displayName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            [
+                              if (vehicle.nickname != null) vehicle.fullTitle else vehicle.modelYear?.toString(),
+                              vehicle.fuelType.label,
+                              vehicle.engine,
+                            ].whereType<String>().join(' · '),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: AppColors.textSecondary),
+                          ),
+                          if (vehicle.plate != null) ...[
+                            const SizedBox(height: 10),
+                            PlatePill(plate: vehicle.plate!),
                           ],
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
+                        ],
+                      );
+                      final narrow = constraints.maxWidth < 420;
+                      final kmBlock = Column(
+                        crossAxisAlignment: narrow ? CrossAxisAlignment.start : CrossAxisAlignment.end,
                         children: [
                           const Text(
                             'Son kilometre',
@@ -344,8 +342,22 @@ class _SelectedVehicleCard extends StatelessWidget {
                             ),
                           ),
                         ],
-                      ),
-                    ],
+                      );
+                      if (narrow) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [titleBlock, const SizedBox(height: 12), kmBlock],
+                        );
+                      }
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: titleBlock),
+                          const SizedBox(width: 12),
+                          kmBlock,
+                        ],
+                      );
+                    },
                   ),
                   const SizedBox(height: 18),
                   Wrap(

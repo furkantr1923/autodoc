@@ -273,15 +273,19 @@ class PlatePill extends StatelessWidget {
               style: TextStyle(color: Colors.white, fontSize: 7, fontWeight: FontWeight.w800),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Text(
-              plate,
-              style: const TextStyle(
+          Flexible(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                plate,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
                 color: Color(0xFF0D1117),
                 fontWeight: FontWeight.w800,
-                fontSize: 12.5,
-                letterSpacing: 1.1,
+                  fontSize: 12.5,
+                  letterSpacing: 1.1,
+                ),
               ),
             ),
           ),

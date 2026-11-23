@@ -145,7 +145,7 @@ class _GeneralTab extends StatelessWidget {
     final width = MediaQuery.sizeOf(context).width;
     final insurance = app.legalStatus(vehicle, LegalKind.insurance);
     final inspection = app.legalStatus(vehicle, LegalKind.inspection);
-    final edit = () => openVehicleForm(context, vehicle: vehicle);
+    void edit() => openVehicleForm(context, vehicle: vehicle);
 
     return ListView(
       padding: pagePadding(width, maxWidth: 980, top: 16, bottom: 100),

@@ -12,6 +12,17 @@ import 'package:path_provider/path_provider.dart';
 /// Çalıştırma:
 ///   flutter test integration_test/app_test.dart -d windows
 ///   flutter test integration_test/app_test.dart -d emulator-5554
+/// Veritabanı işlemleri gerçek zamanlı ve asenkron olduğu için koşul sağlanana kadar bekler.
+Future<void> waitUntil(WidgetTester tester, bool Function() condition,
+    {Duration timeout = const Duration(seconds: 20)}) async {
+  final deadline = DateTime.now().add(timeout);
+  while (!condition() && DateTime.now().isBefore(deadline)) {
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    await tester.pump();
+  }
+  await tester.pumpAndSettle();
+}
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -42,7 +53,7 @@ void main() {
     await tester.enterText(find.byKey(const Key('vehicle_mileage')), '84.000');
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('vehicle_save')));
-    await tester.pumpAndSettle();
+    await waitUntil(tester, () => state.vehicles.isNotEmpty);
 
     expect(state.vehicles, hasLength(1));
     expect(state.vehicles.single.plate, '19 AB 2016');
@@ -59,10 +70,10 @@ void main() {
     await tester.pumpAndSettle();
     final total = tester.widget<TextFormField>(find.byKey(const Key('fuel_total'))).controller!.text;
     expect(total, '1820');
-    await tester.tap(find.byKey(const Key('fuel_save')));
-    await tester.pumpAndSettle();
-
     final vehicleId = state.vehicles.single.id!;
+    await tester.tap(find.byKey(const Key('fuel_save')));
+    await waitUntil(tester, () => state.fuelFor(vehicleId).isNotEmpty);
+
     expect(state.fuelFor(vehicleId), hasLength(1));
     expect(state.fuelFor(vehicleId).single.totalCost, 1820);
     expect(state.lastMileage(vehicleId), 85000);
@@ -110,7 +121,7 @@ void main() {
     await tester.tap(find.byKey(const Key('vehicle_delete')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('confirm_ok')));
-    await tester.pumpAndSettle();
+    await waitUntil(tester, () => state.vehicles.isEmpty);
 
     expect(state.vehicles, isEmpty);
     expect(state.recordsFor(vehicleId), isEmpty);

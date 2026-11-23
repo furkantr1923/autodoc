@@ -39,9 +39,11 @@ jobs:
         run: flutter pub get
 
       - name: Statik analiz
+        shell: bash
         run: flutter analyze --no-fatal-infos --no-fatal-warnings 2>&1 | tee analyze-output.txt
 
       - name: Birim, veritabanı ve arayüz testleri
+        shell: bash
         run: flutter test --reporter expanded 2>&1 | tee test-output.txt
 
       - name: Test çıktılarını sakla

@@ -4,6 +4,7 @@ import 'package:autodoc/app.dart';
 import 'package:autodoc/core/app_info.dart';
 import 'package:autodoc/data/models/enums.dart';
 import 'package:autodoc/state/app_state.dart';
+import 'package:autodoc/ui/dashboard/dashboard_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -98,6 +99,13 @@ void main() {
     // Panel
     expect(find.text('Peugeot 2008'), findsWidgets);
     expect(find.byKey(const Key('legal_alert_banner')), findsOneWidget);
+    // Panel bir liste; alttaki bölüm görünür olana kadar kaydır.
+    await tester.scrollUntilVisible(
+      find.text('Son kayıtlar'),
+      300,
+      scrollable: find.descendant(of: find.byType(DashboardPage), matching: find.byType(Scrollable)).first,
+    );
+    await tester.pumpAndSettle();
     expect(find.text('Son kayıtlar'), findsOneWidget);
     expect(find.textContaining('Fren balatası'), findsWidgets);
 
@@ -152,6 +160,7 @@ void main() {
 
     // Araç detayı ve tüm sekmeler
     await tester.ensureVisible(find.byKey(const Key('open_vehicle_detail')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('open_vehicle_detail')));
     await tester.pumpAndSettle();
     expect(find.text('Araç bilgileri'), findsOneWidget);
