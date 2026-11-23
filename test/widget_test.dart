@@ -5,6 +5,7 @@ import 'package:autodoc/core/app_info.dart';
 import 'package:autodoc/data/models/enums.dart';
 import 'package:autodoc/state/app_state.dart';
 import 'package:autodoc/ui/dashboard/dashboard_page.dart';
+import 'package:autodoc/ui/settings/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -129,6 +130,12 @@ void main() {
 
     // Ayarlar → Hakkında
     await tester.tap(navItem('Ayarlar'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('open_about')),
+      300,
+      scrollable: find.descendant(of: find.byType(SettingsPage), matching: find.byType(Scrollable)).first,
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('open_about')));
     await tester.pumpAndSettle();
