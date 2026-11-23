@@ -285,7 +285,8 @@ jobs:
 
       - name: Sürüm numarası
         id: ver
-        run: echo "version=$(grep '^version:' pubspec.yaml | sed -E 's/version: *([0-9.]+).*/\1/')" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "version=$(grep '^version:' pubspec.yaml | sed -E 's/version: *([0-9.]+).*/\1/')" >> "$GITHUB_OUTPUT"
 
       - uses: actions/download-artifact@v4
         with:
