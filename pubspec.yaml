@@ -1,0 +1,55 @@
+name: autodoc
+description: "AUTODOC — Çevrimdışı araç yönetimi ve bakım kayıt uygulaması (Windows + Android)."
+publish_to: 'none'
+
+# Sürüm numarası lib/core/app_info.dart içindeki AppInfo.version ile aynı tutulur.
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+  flutter: ">=3.27.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # Tarih ve sayı biçimlendirme (tr_TR)
+  intl: ^0.19.0
+
+  # Yerel veritabanı: Android'de sqflite, Windows'ta FFI + gömülü sqlite3.dll
+  sqflite: ^2.4.1
+  sqflite_common_ffi: ^2.3.4
+  sqlite3_flutter_libs: ^0.5.28
+
+  # Dosya yolları ve uygulama veri klasörü
+  path: ^1.9.0
+  path_provider: ^2.1.5
+
+  # Araç fotoğrafı seçimi (galeri / dosya seçici)
+  image_picker: ^1.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.2
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+
+flutter_launcher_icons:
+  android: true
+  image_path: "assets/icon/app_icon.png"
+  adaptive_icon_background: "#060A12"
+  adaptive_icon_foreground: "assets/icon/app_icon_foreground.png"
+  min_sdk_android: 21
+  windows:
+    generate: true
+    image_path: "assets/icon/app_icon.png"
+    icon_size: 256

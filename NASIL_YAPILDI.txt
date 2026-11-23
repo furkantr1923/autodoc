@@ -1,0 +1,135 @@
+AUTODOC — NASIL YAPILDI?
+========================
+Bu dosya "Bu projeyi nasıl yaptın?" sorusuna adım adım cevap vermen için hazırlandı.
+Her başlıkta önce NE yapıldığı, sonra NEDEN öyle yapıldığı yazıyor.
+
+
+1) FİKİR VE KAPSAM
+------------------
+Hedef: Windows ve Android'de çalışan, internetsiz, hesapsız bir araç yönetim uygulaması.
+Kapsamı en baştan net çizdim:
+  - VAR  : araç kaydı, yakıt, bakım/servis, kilometre takibi, sigorta/muayene tarihi, arama
+  - YOK  : bulut, senkronizasyon, yedekleme, dışa aktarma, rapor, istatistik, bildirim, yapay zekâ
+Neden? Gizlilik (veri cihazdan çıkmaz) ve sadelik. Özellik eklemek kolay; çıkarmak zordur.
+
+
+2) TEKNOLOJİ SEÇİMİ
+-------------------
+Flutter (Dart) + SQLite.
+  - Flutter: Tek kod tabanından gerçek Windows .exe ve Android .apk üretir. İkisi de
+    yerel derlenir (web görünümü değildir), bu yüzden hızlıdır.
+  - SQLite: Sunucusuz, tek dosyalık ilişkisel veritabanı. Telefonlarda ve masaüstünde standarttır.
+    Android'de "sqflite", Windows'ta "sqflite_common_ffi" paketiyle kullanılır. Windows sürümü
+    sqlite3.dll dosyasını kendi içinde taşır.
+  - Durum yönetimi: Flutter'ın kendi ChangeNotifier + InheritedNotifier yapısı. Ek kütüphane yok;
+    "az bağımlılık = az risk".
+
+
+3) KLASÖR YAPISI (KATMANLI MİMARİ)
+---------------------------------
+lib/core     → tema (renkler), tarih/sayı biçimlendirme, Türkçe metin yardımcıları
+lib/data     → modeller (Vehicle, FuelRecord, ServiceRecord), veritabanı şeması, repository'ler
+lib/domain   → iş kuralları: kilometre doğrulama, sigorta/muayene durumu, VIN çözme, yakıt hesabı
+lib/state    → AppState: arayüz ile veritabanı arasındaki köprü
+lib/ui       → ekranlar: Panel, Araçlar, Araç detayı, formlar, Arama, Ayarlar, Hakkında
+
+Neden katman? Her parçanın tek bir işi olur. Örneğin kilometre kuralı değişirse yalnızca
+domain/mileage.dart değişir; ekranlara dokunmak gerekmez. Ayrıca domain katmanı Flutter'a
+bağımlı olmadığı için tek başına test edilebilir.
+
+
+4) VERİTABANI TASARIMI
+----------------------
+4 tablo: vehicles, fuel_records, service_records, settings.
+  - Kayıtlar araca "vehicle_id" ile bağlıdır (yabancı anahtar).
+  - "ON DELETE CASCADE": araç silinince ona ait tüm kayıtlar otomatik silinir; yetim kayıt kalmaz.
+  - "CHECK" kısıtları: negatif kilometre, sıfır litre gibi bozuk veri veritabanına hiç giremez.
+    (Arayüz zaten engelliyor; bu ikinci güvenlik katmanı.)
+  - Tarihler "2026-11-23" biçiminde saklanır; saat dilimi yüzünden tarih kayması olmaz.
+  - "mileage_source" alanı: şimdilik hep "manual". İleride OBD cihazı eklenirse aynı tabloya
+    "obd" kaynağıyla yazılabilsin diye konuldu. (OBD bu sürümde YOK.)
+
+Veri akışı: Kullanıcı kaydeder → önce SQLite'a yazılır → liste veritabanından yeniden okunur →
+ekran güncellenir. Yani ekranda görünen her şey veritabanında gerçekten vardır.
+
+
+5) ÖNEMLİ İŞ KURALLARI
+----------------------
+Kilometre:
+  - Engellenenler: boş, harf, negatif, 2.000.000 km üstü, gelecek tarih.
+  - Uyarılanlar: önceki kayıttan düşük ya da sonraki kayıttan yüksek değer. Kullanıcıya
+    "Düzelt / Yine de kaydet" sorulur (gösterge değişimi gibi gerçek durumlar olabilir).
+  - Uygulama hiçbir zaman kilometre uydurmaz veya tahmin etmez.
+Sigorta/muayene:
+  - Bitişe kalan gün hesaplanır: süresi doldu / yaklaşıyor / geçerli / girilmedi.
+  - "Yaklaşıyor" eşiği Ayarlar'dan 7-15-30-60 gün seçilebilir. Uyarılar sadece uygulama içinde.
+Yakıt:
+  - Birim fiyat girilirse toplam, toplam girilirse birim fiyat hesaplanır (kuruşa yuvarlanır).
+VIN:
+  - İlk 3 karakterden (WMI) üretici, internetsiz bir tablodan bulunur.
+  - Model yılı sadece Kuzey Amerika VIN'lerinde güvenilir olduğu için diğerlerinde gösterilmez.
+Arama:
+  - "İ/ı/ş/ğ/ü/ö/ç" farkı yok sayılır: "yag degisimi" yazınca "Yağ değişimi" bulunur.
+
+
+6) ARAYÜZ TASARIMI
+------------------
+  - Renkler: koyu lacivert / siyah zemin, turuncu vurgu. Logo: hız göstergesi + belge çizgileri.
+  - Duyarlı yerleşim: geniş ekranda (Windows) sol menü, dar ekranda (Android) alt menü.
+  - Android geri tuşu: sekmedeyken önce Panel'e döner, Panel'de çıkar. Kaydedilmemiş formda onay ister.
+  - Boş ekranlarda ne yapılacağını anlatan "boş durum" tasarımları, ölçülü giriş animasyonları.
+  - Tüm metinler Türkçe; tarih "23 Kasım 2026", para "₺1.820,00" biçiminde.
+
+
+7) TEST STRATEJİSİ
+------------------
+  - Birim testleri: kilometre kuralları, gün hesapları (artık yıl dahil), VIN, sayı ayrıştırma.
+  - Veritabanı testleri: gerçek SQLite ile ekle/düzenle/sil, kapat-aç kalıcılık, CASCADE silme.
+  - Arayüz testleri: gezinme, Türkçe hata mesajları, geri tuşu, telefon ekranında taşma kontrolü.
+  - Uçtan uca testler: gerçek uygulama Windows'ta ve Android emülatöründe baştan sona kullanılır.
+  - Release kendini sınama: derlenmiş autodoc.exe "--self-test" ile çalıştırılır; paketlenmiş
+    sqlite3.dll'in gerçekten çalıştığı kanıtlanır.
+
+
+8) DERLEME VE YAYIN (CI/CD)
+---------------------------
+GitHub Actions (.github/workflows/build.yml) her push'ta otomatik olarak:
+  1. Kodu analiz eder ve testleri çalıştırır
+  2. Windows release derler → dosyaları doğrular → gerçek çalıştırma testi yapar
+     → Inno Setup ile Setup.exe ve taşınabilir ZIP üretir
+  3. Android APK derler → imzalar → imzayı doğrular
+  4. Android emülatöründe uçtan uca test yapar
+  5. "v1.0.0" gibi bir etiket gönderilince paketleri GitHub Releases'a ekler
+Neden? "Benim bilgisayarımda çalışıyordu" sorunu olmaz; her sürüm aynı adımlarla, kayıtlı
+şekilde üretilir.
+
+android/ ve windows/ klasörleri tool/setup.dart ile Flutter'ın resmi şablonundan üretilir ve
+AUTODOC ayarları (uygulama adı, koyu açılış ekranı, pencere boyutu, simgeler) uygulanır.
+
+
+9) KARŞILAŞILAN KARARLAR (MÜLAKATTA SORULABİLİR)
+------------------------------------------------
+S: Neden iki ayrı native uygulama yerine Flutter?
+C: İş kuralları (kilometre, tarih, arama) iki platformda birebir aynı olmalıydı. Tek kod
+   tabanı tutarlılığı garanti eder; arayüz yine de her platforma göre (yan menü / alt menü) uyarlanır.
+
+S: Neden bulut yok?
+C: Gereksinimde gizlilik ve çevrimdışılık zorunluydu. Veri cihazdan hiç çıkmaz.
+
+S: Veri bellekte de tutuluyor, bu tutarsızlık yaratmaz mı?
+C: Hayır. Her değişiklikten sonra liste veritabanından yeniden okunur; bellek sadece okuma
+   önbelleğidir. Kişisel araç verisi küçük olduğu için bu yaklaşım hem basit hem hızlıdır.
+
+S: Kilometre düşüşünü neden tamamen engellemedin?
+C: Gösterge değişimi veya geçmiş kaydı sonradan girme gibi meşru durumlar var. Bu yüzden
+   bozuk veri (negatif, gelecek tarih) engelleniyor, şüpheli veri ise onaya bağlanıyor.
+
+
+10) ÇALIŞTIRMA
+--------------
+  flutter pub get
+  dart run tool/setup.dart
+  flutter run -d windows
+  flutter test
+
+Geliştirici: Furkan Baykal — github.com/furkantr1923
